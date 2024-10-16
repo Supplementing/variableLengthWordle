@@ -103,7 +103,7 @@ const Wordle = () => {
   }, [currentGuess, guesses, currentLine, solution]);
 
   useEffect(() => {
-    if (currentLine == solution.length) {
+    if (solution.length > 0 && currentLine == solution.length) {
       setGameOver(true);
     }
   }, [currentLine]);
