@@ -58,6 +58,7 @@ const Wordle = () => {
         // console.log(data);
         setSolution(data.word.toLowerCase());
         setDefinition(data.definition);
+        setGuesses(Array(data.word.length).fill(""));
         setMaxHints(Math.floor(data.word.length / 3));
       });
   };
@@ -100,6 +101,12 @@ const Wordle = () => {
 
     return () => window.removeEventListener("keydown", handleKey);
   }, [currentGuess, guesses, currentLine, solution]);
+
+  useEffect(() => {
+    if (currentLine == solution.length) {
+      setGameOver(true);
+    }
+  }, [currentLine]);
 
   useEffect(() => {
     if (
