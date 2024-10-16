@@ -256,7 +256,7 @@ const Line = ({
   complete: boolean;
   solution: string;
 }) => {
-  const tiles: any = [];
+  const tiles: React.JSX.Element[] = [];
   for (let i = 0; i < solution.length; i++) {
     tiles.push(
       <div

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import WordleGame from "./components/wordleGame";
 export default function Home() {
   return (
