@@ -217,6 +217,7 @@ const Wordle = () => {
           return (
             <>
               <Line
+                key={idx}
                 word={idx === currentLine ? currentGuess : line}
                 complete={currentLine > idx}
                 solution={solution}
@@ -259,6 +260,7 @@ const Line = ({
   for (let i = 0; i < solution.length; i++) {
     tiles.push(
       <div
+        key={i}
         style={{
           border: "1px solid black",
           margin: "5px",
