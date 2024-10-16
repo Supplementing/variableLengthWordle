@@ -55,7 +55,7 @@ const Wordle = () => {
     fetch("https://random-words-api-one-pearl.vercel.app/word/")
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
+        // console.log(data);
         setSolution(data.word.toLowerCase());
         setDefinition(data.definition);
         setMaxHints(Math.floor(data.word.length / 3));
