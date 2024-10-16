@@ -118,7 +118,8 @@ const Wordle = () => {
   }, [guesses]);
   useEffect(() => {
     if (extremeMode) {
-      setTimeRemaining(5 * solution.length);
+      // give the user 7 seconds per guess essentially
+      setTimeRemaining(7 * solution.length);
     }
   }, [extremeMode]);
   //   once the first character is entered, start the timer
