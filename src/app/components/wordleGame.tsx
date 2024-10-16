@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 
 import Confetti from "react-confetti";
+import { FormControlLabel, Switch } from "@mui/material";
 const Wordle = () => {
   const [guesses, setGuesses] = useState<string[]>(Array(5).fill(""));
   const [currentGuess, setCurrentGuess] = useState<string>("");
@@ -11,7 +12,12 @@ const Wordle = () => {
   const [confetti, setConfetti] = useState(false);
   const [hintTries, setHintTries] = useState(0);
   const [maxHints, setMaxHints] = useState(3);
-
+  const [extremeMode, setExtremeMode] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(120);
+  const [timerStarted, setTimerStarted] = useState(false);
+  const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(
+    null
+  );
   const resetGame = () => {
     console.log("resetting game");
     setGuesses(Array(5).fill(""));
@@ -20,6 +26,14 @@ const Wordle = () => {
     setCurrentLine(0);
     setConfetti(false);
     setHintTries(0);
+    setTimeRemaining(120);
+    setTimerStarted(false);
+    setExtremeMode(false);
+    getRandomWord();
+  };
+  const toggleExtremeMode = () => {
+    setExtremeMode(!extremeMode);
+    // need to set the timer to 5 seconds * the length of the word so you have 5 seconds per guess
   };
   const addHint = () => {
     console.log("adding hint");
@@ -38,17 +52,17 @@ const Wordle = () => {
     });
     setHintTries((prev) => prev + 1);
   };
-
-  //   initial mount, fetch a random word from the API
-  useEffect(() => {
+  const getRandomWord = () => {
     fetch("https://random-words-api-one-pearl.vercel.app/word/")
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
         setSolution(data.word.toLowerCase());
-        setGuesses(Array(data.word.length).fill(""));
-        setMaxHints(Math.floor(data.word.length / 3));
       });
+  };
+  //   initial mount, fetch a random word from the API
+  useEffect(() => {
+    getRandomWord();
   }, []);
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -69,10 +83,7 @@ const Wordle = () => {
         if (currentGuess == solution) {
           setGameOver(true);
 
-          setTimeout(() => {
-            alert("Winner winner");
-            setConfetti(true);
-          }, 100);
+          setConfetti(true);
         }
       } else if (currentGuess.length == solution.length || e.key == "Enter") {
         console.log("going to return, the current ", currentGuess, solution);
@@ -94,9 +105,73 @@ const Wordle = () => {
       setGameOver(true);
     }
   }, [guesses]);
+  useEffect(() => {
+    if (extremeMode) {
+      setTimeRemaining(5 * solution.length);
+    }
+  }, [extremeMode]);
+  //   once the first character is entered, start the timer
+  useEffect(() => {
+    if (currentGuess.length > 0 && !timerStarted) {
+      setTimerStarted(true);
+    }
+  }, [currentGuess]);
+
+  useEffect(() => {
+    if (timerStarted) {
+      const interval = setInterval(() => {
+        setTimeRemaining((prev) => prev - 1);
+      }, 1000);
+      setTimerInterval(interval);
+      return () => clearInterval(interval);
+    }
+  }, [timerStarted]);
+
+  //   finally, watch the time remaining and end the game if it runs out
+  useEffect(() => {
+    if (timeRemaining <= 0) {
+      setGameOver(true);
+      clearInterval(timerInterval);
+    }
+  }, [timeRemaining]);
+  //   return the UI
   return (
-    <div style={{ color: "white" }}>
+    <div
+      style={{
+        color: "white",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+      }}
+    >
       {confetti && <Confetti />}
+
+      {extremeMode && (
+        <div
+          style={{
+            color: "white",
+            fontSize: "20px",
+            background: "rgba(255, 0, 0, 0.4)",
+            maxWidth: "800px",
+            padding: "10px",
+            borderRadius: "10px",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center",
+            marginBottom: "10px",
+          }}
+        >
+          <div>Youve turned on extreme mode, you will now have a timer.</div>
+          <div style={{ fontSize: "18px", fontStyle: "italic" }}>
+            The timer will start when you enter the first character and the game
+            will end when the timer runs out. Good luck!
+          </div>
+          😈
+          <div>Time Remaining: {timeRemaining}</div>
+        </div>
+      )}
       {guesses.map((line, idx) => {
         return (
           <>
@@ -108,7 +183,31 @@ const Wordle = () => {
           </>
         );
       })}
-      <button onClick={addHint}>Hint {maxHints - hintTries} remaining</button>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between !important",
+        }}
+      >
+        {" "}
+        <FormControlLabel
+          style={{}}
+          control={
+            <Switch checked={extremeMode} onChange={toggleExtremeMode} />
+          }
+          label="Extreme Mode"
+        />
+        <button
+          style={{ float: "right" }}
+          onClick={addHint}
+          disabled={hintTries >= maxHints}
+        >
+          Hint ({maxHints - hintTries} remaining)
+        </button>
+      </div>
+
       {gameOver && (
         <div
           style={{
@@ -124,6 +223,7 @@ const Wordle = () => {
           }}
         >
           <h3>Game over</h3>
+          <h2>The word was {solution}</h2>
           <button
             onClick={resetGame}
             style={{
