@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 
 import Confetti from "react-confetti";
-import { FormControlLabel, Switch } from "@mui/material";
+import { FormControlLabel, Switch, Button } from "@mui/material";
 const Wordle = () => {
   const [guesses, setGuesses] = useState<string[]>(Array(5).fill(""));
   const [currentGuess, setCurrentGuess] = useState<string>("");
@@ -15,11 +15,11 @@ const Wordle = () => {
   const [extremeMode, setExtremeMode] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(120);
   const [timerStarted, setTimerStarted] = useState(false);
+  const [definition, setDefinition] = useState<string>("");
   const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(
     null
   );
   const resetGame = () => {
-    console.log("resetting game");
     setGuesses(Array(5).fill(""));
     setCurrentGuess("");
     setGameOver(false);
@@ -36,7 +36,6 @@ const Wordle = () => {
     // need to set the timer to 5 seconds * the length of the word so you have 5 seconds per guess
   };
   const addHint = () => {
-    console.log("adding hint");
     if (hintTries >= maxHints) {
       alert("No more hints for you!");
       return;
@@ -58,6 +57,8 @@ const Wordle = () => {
       .then((data) => {
         console.log(data);
         setSolution(data.word.toLowerCase());
+        setDefinition(data.definition);
+        setMaxHints(Math.floor(data.word.length / 3));
       });
   };
   //   initial mount, fetch a random word from the API
@@ -66,7 +67,11 @@ const Wordle = () => {
   }, []);
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
-      if (/[a-z]/.test(e.key) != true) {
+      if (
+        /^[a-z]|[A-Z]$/.test(e.key) != true &&
+        e.key !== "Enter" &&
+        e.key !== "Backspace"
+      ) {
         return;
       }
       if (gameOver) {
@@ -86,7 +91,6 @@ const Wordle = () => {
           setConfetti(true);
         }
       } else if (currentGuess.length == solution.length || e.key == "Enter") {
-        console.log("going to return, the current ", currentGuess, solution);
         return;
       } else {
         setCurrentGuess((prev) => `${prev}${e.key}`);
@@ -131,115 +135,114 @@ const Wordle = () => {
   useEffect(() => {
     if (timeRemaining <= 0) {
       setGameOver(true);
-      clearInterval(timerInterval);
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
     }
   }, [timeRemaining]);
   //   return the UI
+  if (gameOver) {
+    return (
+      <div>
+        {confetti && <Confetti />}
+        <GameOverCard
+          solution={solution}
+          definition={definition}
+          resetGame={resetGame}
+        />
+      </div>
+    );
+  }
   return (
     <div
       style={{
         color: "white",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
+
         justifyContent: "center",
-        textAlign: "center",
+
+        backgroundColor: "rgb(40, 40, 40)",
+        borderRadius: "10px",
+        padding: "20px",
+        margin: "10px",
       }}
     >
-      {confetti && <Confetti />}
-
-      {extremeMode && (
-        <div
-          style={{
-            color: "white",
-            fontSize: "20px",
-            background: "rgba(255, 0, 0, 0.4)",
-            maxWidth: "800px",
-            padding: "10px",
-            borderRadius: "10px",
-            alignItems: "center",
-            justifyContent: "center",
-            textAlign: "center",
-            marginBottom: "10px",
-          }}
-        >
-          <div>Youve turned on extreme mode, you will now have a timer.</div>
-          <div style={{ fontSize: "18px", fontStyle: "italic" }}>
-            The timer will start when you enter the first character and the game
-            will end when the timer runs out. Good luck!
-          </div>
-          😈
-          <div>Time Remaining: {timeRemaining}</div>
-        </div>
-      )}
-      {guesses.map((line, idx) => {
-        return (
-          <>
-            <Line
-              word={idx === currentLine ? currentGuess : line}
-              complete={currentLine > idx}
-              solution={solution}
-            />
-          </>
-        );
-      })}
       <div
         style={{
           display: "flex",
           flexDirection: "row",
           alignItems: "center",
-          justifyContent: "space-between !important",
+          justifyContent: "space-between",
         }}
       >
-        {" "}
+        <h1 style={{ fontSize: "25px" }}>Glyphmare</h1>
         <FormControlLabel
-          style={{}}
-          control={
-            <Switch checked={extremeMode} onChange={toggleExtremeMode} />
-          }
           label="Extreme Mode"
+          control={
+            <Switch
+              checked={extremeMode}
+              onChange={toggleExtremeMode}
+              color="primary"
+            />
+          }
         />
-        <button
-          style={{ float: "right" }}
-          onClick={addHint}
-          disabled={hintTries >= maxHints}
-        >
-          Hint ({maxHints - hintTries} remaining)
-        </button>
       </div>
-
-      {gameOver && (
-        <div
-          style={{
-            position: "relative",
-            bottom: "0",
-            width: "100%",
-            backgroundColor: "lightsalmon",
-            textAlign: "center",
-            fontSize: "30px",
-            color: "white",
-            margin: "10px",
-            borderRadius: "10px",
-          }}
-        >
-          <h3>Game over</h3>
-          <h2>The word was {solution}</h2>
-          <button
-            onClick={resetGame}
+      {extremeMode && (
+        <>
+          <div
             style={{
-              backgroundColor: "white",
-              borderRadius: "20px",
-              width: "400px",
-              height: "50px",
-              marginBottom: "10px",
+              color: "white",
               fontSize: "20px",
-              color: "black",
+              background: "rgba(255, 0, 0, 0.4)",
+
+              padding: "10px",
+              borderRadius: "10px",
+              alignItems: "center",
+              justifyContent: "center",
+              marginTop: "10px",
+              marginBottom: "10px",
             }}
           >
+            <div style={{ fontSize: "18px", fontStyle: "italic" }}>
+              Timer starts on first character. Game ends when timer runs out.
+              Good luck!
+            </div>
+            <div>Time Remaining: {timeRemaining}</div>
+          </div>
+        </>
+      )}
+      <div style={{ alignSelf: "center" }}>
+        {guesses.map((line, idx) => {
+          return (
+            <>
+              <Line
+                word={idx === currentLine ? currentGuess : line}
+                complete={currentLine > idx}
+                solution={solution}
+              />
+            </>
+          );
+        })}
+        <div
+          style={{
+            marginTop: "10px",
+            justifyContent: "space-between",
+          }}
+        >
+          <Button variant="contained" onClick={resetGame}>
             Reset
+          </Button>
+
+          <button
+            style={{ float: "right" }}
+            onClick={addHint}
+            disabled={hintTries >= maxHints}
+          >
+            Hint ({maxHints - hintTries} remaining)
           </button>
         </div>
-      )}
+      </div>
     </div>
   );
 };
@@ -284,5 +287,47 @@ const Line = ({
     );
   }
   return <div style={{ display: "flex" }}>{tiles}</div>;
+};
+const GameOverCard = ({
+  solution,
+  definition,
+  resetGame,
+}: {
+  solution: string;
+  definition: string;
+  resetGame: () => void;
+}) => {
+  return (
+    <div
+      style={{
+        background: "rgba(40, 40, 40)",
+        padding: "20px",
+        borderRadius: "10px",
+        width: "300px",
+      }}
+    >
+      <h1 style={{ fontSize: "25px", textAlign: "center" }}>Game over!</h1>
+      <h2 style={{ fontSize: "20px" }}>The word was: </h2>
+      <h1
+        style={{
+          fontSize: "20px",
+          textAlign: "center",
+          color: "gold",
+          fontWeight: "bold",
+        }}
+      >
+        {solution.toUpperCase()}
+      </h1>
+      <h2 style={{ fontSize: "20px" }}>Definition:</h2>
+      <p style={{ fontSize: "18px" }}>{definition}</p>
+      <Button
+        style={{ marginTop: "10px", width: "100%" }}
+        variant="contained"
+        onClick={resetGame}
+      >
+        Play Again
+      </Button>
+    </div>
+  );
 };
 export default Wordle;
