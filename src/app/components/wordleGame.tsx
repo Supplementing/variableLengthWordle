@@ -120,6 +120,10 @@ const Wordle = () => {
     if (extremeMode) {
       // give the user 7 seconds per guess essentially
       setTimeRemaining(7 * solution.length);
+    } else {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
     }
   }, [extremeMode]);
   //   once the first character is entered, start the timer
@@ -130,7 +134,7 @@ const Wordle = () => {
   }, [currentGuess]);
 
   useEffect(() => {
-    if (timerStarted) {
+    if (timerStarted && extremeMode) {
       const interval = setInterval(() => {
         setTimeRemaining((prev) => prev - 1);
       }, 1000);
