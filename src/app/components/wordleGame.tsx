@@ -2,8 +2,14 @@
 import React, { useState, useEffect } from "react";
 
 import Confetti from "react-confetti";
-import { FormControlLabel, Switch, Button } from "@mui/material";
-const Wordle = () => {
+import {
+  FormControlLabel,
+  Switch,
+  Button,
+  CircularProgress,
+} from "@mui/material";
+const Wordle = ({ setScore }: { setScore: (score: number) => void }) => {
+  const [loading, setLoading] = useState(true);
   const [guesses, setGuesses] = useState<string[]>(Array(5).fill(""));
   const [currentGuess, setCurrentGuess] = useState<string>("");
   const [currentLine, setCurrentLine] = useState(0);
@@ -19,7 +25,19 @@ const Wordle = () => {
   const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(
     null
   );
-  const resetGame = () => {
+
+  const updateScore = () => {
+    // update the score in the local storage
+    const currentScore = localStorage.getItem("score");
+    if (currentScore) {
+      localStorage.setItem("score", (parseInt(currentScore) + 1).toString());
+      setScore(parseInt(currentScore) + 1);
+    } else {
+      localStorage.setItem("score", "1");
+      setScore(1);
+    }
+  };
+  const resetGame = async () => {
     setGuesses(Array(5).fill(""));
     setCurrentGuess("");
     setGameOver(false);
@@ -29,7 +47,7 @@ const Wordle = () => {
     setTimeRemaining(120);
     setTimerStarted(false);
     setExtremeMode(false);
-    getRandomWord();
+    await getRandomWord();
   };
   const toggleExtremeMode = () => {
     setExtremeMode(!extremeMode);
@@ -51,15 +69,18 @@ const Wordle = () => {
     });
     setHintTries((prev) => prev + 1);
   };
-  const getRandomWord = () => {
-    fetch("https://random-words-api-one-pearl.vercel.app/word/")
+  const getRandomWord = async () => {
+    console.log("getting random word");
+    setLoading(true);
+    await fetch("https://random-words-api-one-pearl.vercel.app/word/")
       .then((res) => res.json())
       .then((data) => {
-        // console.log(data);
+        console.log(data);
         setSolution(data.word.toLowerCase());
         setDefinition(data.definition);
         setGuesses(Array(data.word.length).fill(""));
         setMaxHints(Math.floor(data.word.length / 3));
+        setLoading(false);
       });
   };
   //   initial mount, fetch a random word from the API
@@ -90,8 +111,10 @@ const Wordle = () => {
           setGameOver(true);
 
           setConfetti(true);
+          updateScore();
         }
       } else if (currentGuess.length == solution.length || e.key == "Enter") {
+        console.log("enter pressed, returning");
         return;
       } else {
         setCurrentGuess((prev) => `${prev}${e.key}`);
@@ -164,8 +187,12 @@ const Wordle = () => {
         />
       </div>
     );
+  } else if (loading) {
+    return <CircularProgress />;
   }
+  //   otherwise, return the game
   return (
+    // game card
     <div
       style={{
         color: "white",
@@ -177,9 +204,10 @@ const Wordle = () => {
         backgroundColor: "rgb(40, 40, 40)",
         borderRadius: "10px",
         padding: "20px",
-        margin: "10px",
+        marginTop: "10px",
       }}
     >
+      {/* game header */}
       <div
         style={{
           display: "flex",
@@ -188,7 +216,7 @@ const Wordle = () => {
           justifyContent: "space-between",
         }}
       >
-        <h1 style={{ fontSize: "25px" }}>Glyphmare</h1>
+        <h1 style={{ fontSize: "20px", marginRight: "4px" }}>Glyphmare</h1>
         <FormControlLabel
           label="Extreme Mode"
           control={
@@ -200,6 +228,7 @@ const Wordle = () => {
           }
         />
       </div>
+      {/* extreme mode timer */}
       {extremeMode && (
         <>
           <div
@@ -225,6 +254,7 @@ const Wordle = () => {
         </>
       )}
       <div style={{ alignSelf: "center" }}>
+        {/* game board */}
         {guesses.map((line, idx) => {
           return (
             <>
@@ -243,9 +273,13 @@ const Wordle = () => {
             justifyContent: "space-between",
           }}
         >
-          <Button variant="contained" onClick={resetGame}>
+          {/* <Button
+            variant="contained"
+            onClick={resetGame}
+            disabled={currentLine != solution.length}
+          >
             Reset
-          </Button>
+          </Button> */}
 
           <button
             style={{ float: "right" }}
@@ -276,8 +310,8 @@ const Line = ({
         style={{
           border: "1px solid black",
           margin: "5px",
-          width: "80px",
-          height: "80px",
+          width: "40px",
+          height: "40px",
           fontSize: "20px",
           color: "white",
           textTransform: "uppercase",
