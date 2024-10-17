@@ -19,7 +19,8 @@ export default function Home() {
       <div className="flex justify-center items-center h-screen">
         <WordleGame setScore={setScore} />
       </div>
-      <p
+
+      <Chip
         style={{
           position: "absolute",
           top: "10px",
@@ -27,9 +28,9 @@ export default function Home() {
           color: "grey",
           margin: "10px",
         }}
-      >
-        <Chip color="success" label={`Lifetime Solves: ${score}`} />
-      </p>
+        color="success"
+        label={`Lifetime Solves: ${score}`}
+      />
     </div>
   );
 }
