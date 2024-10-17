@@ -4,11 +4,11 @@ import { useState } from "react";
 import { Medal } from "lucide-react";
 
 const Leaderboard = () => {
-  const [rows, setRows] = useState([
+  const rows = [
     { name: "John Doe", score: 100 },
     { name: "Jane Doe", score: 90 },
     { name: "John Smith", score: 80 },
-  ]);
+  ];
   return (
     <div>
       <div
@@ -32,6 +32,7 @@ const Leaderboard = () => {
 
         {rows.map((row, index) => (
           <div
+            key={index}
             style={{
               display: "flex",
               alignItems: "center",
