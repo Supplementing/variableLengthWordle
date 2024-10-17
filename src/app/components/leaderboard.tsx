@@ -1,13 +1,5 @@
 "use client";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-} from "@mui/material";
+
 import { useState } from "react";
 import { Medal } from "lucide-react";
 

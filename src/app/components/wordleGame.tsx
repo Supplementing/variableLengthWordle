@@ -51,7 +51,6 @@ const Wordle = ({ setScore }: { setScore: (score: number) => void }) => {
   };
   const toggleExtremeMode = () => {
     setExtremeMode(!extremeMode);
-    // need to set the timer to 5 seconds * the length of the word so you have 5 seconds per guess
   };
   const addHint = () => {
     if (hintTries >= maxHints) {
@@ -70,12 +69,12 @@ const Wordle = ({ setScore }: { setScore: (score: number) => void }) => {
     setHintTries((prev) => prev + 1);
   };
   const getRandomWord = async () => {
-    console.log("getting random word");
+    // console.log("getting random word");
     setLoading(true);
     await fetch("https://random-words-api-one-pearl.vercel.app/word/")
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
+        // console.log(data);
         setSolution(data.word.toLowerCase());
         setDefinition(data.definition);
         setGuesses(Array(data.word.length).fill(""));
@@ -87,6 +86,8 @@ const Wordle = ({ setScore }: { setScore: (score: number) => void }) => {
   useEffect(() => {
     getRandomWord();
   }, []);
+
+  //   handle the keyboard input
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (
@@ -125,6 +126,7 @@ const Wordle = ({ setScore }: { setScore: (score: number) => void }) => {
     return () => window.removeEventListener("keydown", handleKey);
   }, [currentGuess, guesses, currentLine, solution]);
 
+  //   handle the game over condition
   useEffect(() => {
     if (solution.length > 0 && currentLine == solution.length) {
       setGameOver(true);

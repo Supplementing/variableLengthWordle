@@ -1,6 +1,6 @@
 "use client";
 import WordleGame from "./components/wordleGame";
-import Leaderboard from "./components/leaderboard";
+
 import React, { useState, useEffect } from "react";
 import { Chip } from "@mui/material";
 
@@ -25,7 +25,7 @@ export default function Home() {
           position: "absolute",
           top: "10px",
           right: "10px",
-          color: "grey",
+          color: "white",
           margin: "10px",
         }}
         color="success"
